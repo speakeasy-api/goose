@@ -23,7 +23,7 @@ Goose supports [embedding SQL migrations](#embedded-sql-migrations), which means
       register your Go migration functions explicitly and run complex
       migrations with your own `*sql.DB` connection
     - Go migration functions let you run your code within
-      an SQL transaction, if you use the `*sql.Tx` argument
+      an SQL transaction, if you use the `*sqlx.Tx` argument
 - The goose pkg is decoupled from the binary:
     - goose pkg doesn't register any SQL drivers anymore,
       thus no driver `panic()` conflict within your codebase!
@@ -264,17 +264,17 @@ Example usage, assuming that SQL migrations are placed in the `migrations` direc
 package main
 
 import (
-    "database/sql"
+    "github.com/jmoiron/sqlx"
     "embed"
 
-    "github.com/pressly/goose/v3"
+    "github.com/speakeasy-api/goose/v3"
 )
 
 //go:embed migrations/*.sql
 var embedMigrations embed.FS
 
 func main() {
-    var db *sql.DB
+    var db *sqlx.DB
     // setup database
 
     goose.SetBaseFS(embedMigrations)
@@ -298,7 +298,7 @@ Note that we pass `"migrations"` as directory argument in `Up` because embedding
 1. Create your own goose binary, see [example](./examples/go-migrations)
 2. Import `github.com/pressly/goose`
 3. Register your migration functions
-4. Run goose command, ie. `goose.Up(db *sql.DB, dir string)`
+4. Run goose command, ie. `goose.Up(db *sqlx.DB, dir string)`
 
 A [sample Go migration 00002_users_add_email.go file](./examples/go-migrations/00002_rename_root.go) looks like:
 
@@ -306,16 +306,16 @@ A [sample Go migration 00002_users_add_email.go file](./examples/go-migrations/0
 package migrations
 
 import (
-	"database/sql"
+	"github.com/jmoiron/sqlx"
 
-	"github.com/pressly/goose/v3"
+	"github.com/speakeasy-api/goose/v3"
 )
 
 func init() {
 	goose.AddMigration(Up, Down)
 }
 
-func Up(tx *sql.Tx) error {
+func Up(tx *sqlx.Tx) error {
 	_, err := tx.Exec("UPDATE users SET username='admin' WHERE username='root';")
 	if err != nil {
 		return err
@@ -323,7 +323,7 @@ func Up(tx *sql.Tx) error {
 	return nil
 }
 
-func Down(tx *sql.Tx) error {
+func Down(tx *sqlx.Tx) error {
 	_, err := tx.Exec("UPDATE users SET username='root' WHERE username='admin';")
 	if err != nil {
 		return err

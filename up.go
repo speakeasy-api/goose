@@ -1,11 +1,12 @@
 package goose
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/jmoiron/sqlx"
 )
 
 type options struct {
@@ -29,7 +30,7 @@ func withApplyUpByOne() OptionsFunc {
 }
 
 // UpTo migrates up to a specific version.
-func UpTo(db *sql.DB, dir string, version int64, opts ...OptionsFunc) error {
+func UpTo(db *sqlx.DB, dir string, version int64, opts ...OptionsFunc) error {
 	option := &options{}
 	for _, f := range opts {
 		f(option)
@@ -118,7 +119,7 @@ func UpTo(db *sql.DB, dir string, version int64, opts ...OptionsFunc) error {
 
 // upToNoVersioning applies up migrations up to, and including, the
 // target version.
-func upToNoVersioning(db *sql.DB, migrations Migrations, version int64) error {
+func upToNoVersioning(db *sqlx.DB, migrations Migrations, version int64) error {
 	var finalVersion int64
 	for _, current := range migrations {
 		if current.Version > version {
@@ -135,7 +136,7 @@ func upToNoVersioning(db *sql.DB, migrations Migrations, version int64) error {
 }
 
 func upWithMissing(
-	db *sql.DB,
+	db *sqlx.DB,
 	missingMigrations Migrations,
 	foundMigrations Migrations,
 	dbMigrations Migrations,
@@ -206,19 +207,19 @@ func upWithMissing(
 }
 
 // Up applies all available migrations.
-func Up(db *sql.DB, dir string, opts ...OptionsFunc) error {
+func Up(db *sqlx.DB, dir string, opts ...OptionsFunc) error {
 	return UpTo(db, dir, maxVersion, opts...)
 }
 
 // UpByOne migrates up by a single version.
-func UpByOne(db *sql.DB, dir string, opts ...OptionsFunc) error {
+func UpByOne(db *sqlx.DB, dir string, opts ...OptionsFunc) error {
 	opts = append(opts, withApplyUpByOne())
 	return UpTo(db, dir, maxVersion, opts...)
 }
 
 // listAllDBVersions returns a list of all migrations, ordered ascending.
 // TODO(mf): fairly cheap, but a nice-to-have is pagination support.
-func listAllDBVersions(db *sql.DB) (Migrations, error) {
+func listAllDBVersions(db *sqlx.DB) (Migrations, error) {
 	rows, err := GetDialect().dbVersionQuery(db)
 	if err != nil {
 		return nil, createVersionTable(db)

@@ -1,11 +1,9 @@
 package goose
 
-import (
-	"database/sql"
-)
+import "github.com/jmoiron/sqlx"
 
 // Redo rolls back the most recently applied migration, then runs it again.
-func Redo(db *sql.DB, dir string, opts ...OptionsFunc) error {
+func Redo(db *sqlx.DB, dir string, opts ...OptionsFunc) error {
 	option := &options{}
 	for _, f := range opts {
 		f(option)
@@ -14,9 +12,7 @@ func Redo(db *sql.DB, dir string, opts ...OptionsFunc) error {
 	if err != nil {
 		return err
 	}
-	var (
-		currentVersion int64
-	)
+	var currentVersion int64
 	if option.noVersioning {
 		if len(migrations) == 0 {
 			return nil

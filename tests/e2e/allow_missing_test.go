@@ -1,11 +1,11 @@
 package e2e
 
 import (
-	"database/sql"
 	"testing"
 
-	"github.com/pressly/goose/v3"
-	"github.com/pressly/goose/v3/internal/check"
+	"github.com/jmoiron/sqlx"
+	"github.com/speakeasy-api/goose/v3"
+	"github.com/speakeasy-api/goose/v3/internal/check"
 )
 
 func TestNotAllowMissing(t *testing.T) {
@@ -317,7 +317,7 @@ func TestMigrateAllowMissingDown(t *testing.T) {
 
 // setupTestDB is helper to setup a DB and apply migrations
 // up to the specified version.
-func setupTestDB(t *testing.T, version int64) *sql.DB {
+func setupTestDB(t *testing.T, version int64) *sqlx.DB {
 	db, err := newDockerDB(t)
 	check.NoError(t, err)
 

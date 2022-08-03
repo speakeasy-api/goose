@@ -1,13 +1,14 @@
 package goose
 
 import (
-	"database/sql"
 	"fmt"
+
+	"github.com/jmoiron/sqlx"
 )
 
 // OpenDBWithDriver creates a connection to a database, and modifies goose
 // internals to be compatible with the supplied driver by calling SetDialect.
-func OpenDBWithDriver(driver string, dbstring string) (*sql.DB, error) {
+func OpenDBWithDriver(driver string, dbstring string) (*sqlx.DB, error) {
 	if err := SetDialect(driver); err != nil {
 		return nil, err
 	}
@@ -23,7 +24,7 @@ func OpenDBWithDriver(driver string, dbstring string) (*sql.DB, error) {
 
 	switch driver {
 	case "postgres", "pgx", "sqlite3", "sqlite", "mysql", "sqlserver", "clickhouse":
-		return sql.Open(driver, dbstring)
+		return sqlx.Open(driver, dbstring)
 	default:
 		return nil, fmt.Errorf("unsupported driver %s", driver)
 	}

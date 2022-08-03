@@ -1,7 +1,6 @@
 package goose
 
 import (
-	"database/sql"
 	"embed"
 	"fmt"
 	"io/fs"
@@ -11,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jmoiron/sqlx"
 	_ "modernc.org/sqlite"
 )
 
@@ -153,7 +153,7 @@ var migrations embed.FS
 
 func TestEmbeddedMigrations(t *testing.T) {
 	// not using t.Parallel here to avoid races
-	db, err := sql.Open("sqlite", "sql_embed.db")
+	db, err := sqlx.Open("sqlite", "sql_embed.db")
 	if err != nil {
 		t.Fatalf("Database open failed: %s", err)
 	}

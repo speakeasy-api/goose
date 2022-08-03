@@ -1,7 +1,6 @@
 package e2e
 
 import (
-	"database/sql"
 	"flag"
 	"fmt"
 	"log"
@@ -11,8 +10,9 @@ import (
 	"syscall"
 	"testing"
 
-	"github.com/pressly/goose/v3/internal/check"
-	"github.com/pressly/goose/v3/internal/testdb"
+	"github.com/jmoiron/sqlx"
+	"github.com/speakeasy-api/goose/v3/internal/check"
+	"github.com/speakeasy-api/goose/v3/internal/testdb"
 )
 
 const (
@@ -90,13 +90,13 @@ func TestMain(m *testing.M) {
 }
 
 // newDockerDB starts a database container and returns a usable SQL connection.
-func newDockerDB(t *testing.T) (*sql.DB, error) {
+func newDockerDB(t *testing.T) (*sqlx.DB, error) {
 	options := []testdb.OptionsFunc{
 		testdb.WithBindPort(*bindPort),
 		testdb.WithDebug(*debug),
 	}
 	var (
-		db      *sql.DB
+		db      *sqlx.DB
 		cleanup func()
 		err     error
 	)

@@ -3,6 +3,8 @@ package goose
 import (
 	"database/sql"
 	"fmt"
+
+	"github.com/jmoiron/sqlx"
 )
 
 // SQLDialect abstracts the details of specific SQL dialects
@@ -12,7 +14,7 @@ type SQLDialect interface {
 	insertVersionSQL() string      // sql string to insert the initial version table row
 	deleteVersionSQL() string      // sql string to delete version
 	migrationSQL() string          // sql string to retrieve migrations
-	dbVersionQuery(db *sql.DB) (*sql.Rows, error)
+	dbVersionQuery(db *sqlx.DB) (*sql.Rows, error)
 }
 
 var dialect SQLDialect = &PostgresDialect{}
@@ -67,7 +69,7 @@ func (pg PostgresDialect) insertVersionSQL() string {
 	return fmt.Sprintf("INSERT INTO %s (version_id, is_applied) VALUES ($1, $2);", TableName())
 }
 
-func (pg PostgresDialect) dbVersionQuery(db *sql.DB) (*sql.Rows, error) {
+func (pg PostgresDialect) dbVersionQuery(db *sqlx.DB) (*sql.Rows, error) {
 	rows, err := db.Query(fmt.Sprintf("SELECT version_id, is_applied from %s ORDER BY id DESC", TableName()))
 	if err != nil {
 		return nil, err
@@ -105,7 +107,7 @@ func (m MySQLDialect) insertVersionSQL() string {
 	return fmt.Sprintf("INSERT INTO %s (version_id, is_applied) VALUES (?, ?);", TableName())
 }
 
-func (m MySQLDialect) dbVersionQuery(db *sql.DB) (*sql.Rows, error) {
+func (m MySQLDialect) dbVersionQuery(db *sqlx.DB) (*sql.Rows, error) {
 	rows, err := db.Query(fmt.Sprintf("SELECT version_id, is_applied from %s ORDER BY id DESC", TableName()))
 	if err != nil {
 		return nil, err
@@ -142,7 +144,7 @@ func (m SqlServerDialect) insertVersionSQL() string {
 	return fmt.Sprintf("INSERT INTO %s (version_id, is_applied) VALUES (@p1, @p2);", TableName())
 }
 
-func (m SqlServerDialect) dbVersionQuery(db *sql.DB) (*sql.Rows, error) {
+func (m SqlServerDialect) dbVersionQuery(db *sqlx.DB) (*sql.Rows, error) {
 	rows, err := db.Query(fmt.Sprintf("SELECT version_id, is_applied FROM %s ORDER BY id DESC", TableName()))
 	if err != nil {
 		return nil, err
@@ -192,7 +194,7 @@ func (m Sqlite3Dialect) insertVersionSQL() string {
 	return fmt.Sprintf("INSERT INTO %s (version_id, is_applied) VALUES (?, ?);", TableName())
 }
 
-func (m Sqlite3Dialect) dbVersionQuery(db *sql.DB) (*sql.Rows, error) {
+func (m Sqlite3Dialect) dbVersionQuery(db *sqlx.DB) (*sql.Rows, error) {
 	rows, err := db.Query(fmt.Sprintf("SELECT version_id, is_applied from %s ORDER BY id DESC", TableName()))
 	if err != nil {
 		return nil, err
@@ -230,7 +232,7 @@ func (rs RedshiftDialect) insertVersionSQL() string {
 	return fmt.Sprintf("INSERT INTO %s (version_id, is_applied) VALUES ($1, $2);", TableName())
 }
 
-func (rs RedshiftDialect) dbVersionQuery(db *sql.DB) (*sql.Rows, error) {
+func (rs RedshiftDialect) dbVersionQuery(db *sqlx.DB) (*sql.Rows, error) {
 	rows, err := db.Query(fmt.Sprintf("SELECT version_id, is_applied from %s ORDER BY id DESC", TableName()))
 	if err != nil {
 		return nil, err
@@ -268,7 +270,7 @@ func (m TiDBDialect) insertVersionSQL() string {
 	return fmt.Sprintf("INSERT INTO %s (version_id, is_applied) VALUES (?, ?);", TableName())
 }
 
-func (m TiDBDialect) dbVersionQuery(db *sql.DB) (*sql.Rows, error) {
+func (m TiDBDialect) dbVersionQuery(db *sqlx.DB) (*sql.Rows, error) {
 	rows, err := db.Query(fmt.Sprintf("SELECT version_id, is_applied from %s ORDER BY id DESC", TableName()))
 	if err != nil {
 		return nil, err
@@ -301,7 +303,7 @@ func (m ClickHouseDialect) createVersionTableSQL() string {
     ) Engine = MergeTree(date, (date), 8192)`, TableName())
 }
 
-func (m ClickHouseDialect) dbVersionQuery(db *sql.DB) (*sql.Rows, error) {
+func (m ClickHouseDialect) dbVersionQuery(db *sqlx.DB) (*sql.Rows, error) {
 	rows, err := db.Query(fmt.Sprintf("SELECT version_id, is_applied FROM %s ORDER BY version_id DESC", TableName()))
 	if err != nil {
 		return nil, err

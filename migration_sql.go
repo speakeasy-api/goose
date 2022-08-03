@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"regexp"
 	"time"
+
+	"github.com/jmoiron/sqlx"
 )
 
 // Run a migration specified in raw SQL.
@@ -15,7 +17,7 @@ import (
 //
 // All statements following an Up or Down directive are grouped together
 // until another direction directive is found.
-func runSQLMigration(db *sql.DB, statements []string, useTx bool, v int64, direction bool, noVersioning bool) error {
+func runSQLMigration(db *sqlx.DB, statements []string, useTx bool, v int64, direction bool, noVersioning bool) error {
 	if useTx {
 		// TRANSACTION.
 

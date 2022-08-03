@@ -1,12 +1,12 @@
 package testdb
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"strconv"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
+	"github.com/jmoiron/sqlx"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 )
@@ -21,7 +21,7 @@ const (
 	POSTGRES_PASSWORD = "password1"
 )
 
-func newPostgres(opts ...OptionsFunc) (*sql.DB, func(), error) {
+func newPostgres(opts ...OptionsFunc) (*sqlx.DB, func(), error) {
 	option := &options{}
 	for _, f := range opts {
 		f(option)
@@ -75,13 +75,13 @@ func newPostgres(opts ...OptionsFunc) (*sql.DB, func(), error) {
 		POSTGRES_PASSWORD,
 		POSTGRES_DB,
 	)
-	var db *sql.DB
+	var db *sqlx.DB
 	// Exponential backoff-retry, because the application in the container
 	// might not be ready to accept connections yet.
 	if err := pool.Retry(
 		func() error {
 			var err error
-			db, err = sql.Open("pgx", psqlInfo)
+			db, err = sqlx.Open("pgx", psqlInfo)
 			if err != nil {
 				return err
 			}

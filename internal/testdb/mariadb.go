@@ -1,13 +1,13 @@
 package testdb
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"strconv"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 )
@@ -22,7 +22,7 @@ const (
 	MARIADB_PASSWORD = "password1"
 )
 
-func newMariaDB(opts ...OptionsFunc) (*sql.DB, func(), error) {
+func newMariaDB(opts ...OptionsFunc) (*sqlx.DB, func(), error) {
 	option := &options{}
 	for _, f := range opts {
 		f(option)
@@ -78,14 +78,14 @@ func newMariaDB(opts ...OptionsFunc) (*sql.DB, func(), error) {
 		container.GetPort("3306/tcp"), // Fetch port dynamically assigned to container
 		MARIADB_DB,
 	)
-	var db *sql.DB
+	var db *sqlx.DB
 	// Exponential backoff-retry, because the application in the container
 	// might not be ready to accept connections yet. Add an extra sleep
 	// because mariadb containers take much longer to startup.
 	time.Sleep(5 * time.Second)
 	if err := pool.Retry(func() error {
 		var err error
-		db, err = sql.Open("mysql", dsn)
+		db, err = sqlx.Open("mysql", dsn)
 		if err != nil {
 			return err
 		}

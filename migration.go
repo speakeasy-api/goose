@@ -1,13 +1,14 @@
 package goose
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/jmoiron/sqlx"
 )
 
 // MigrationRecord struct.
@@ -24,8 +25,8 @@ type Migration struct {
 	Previous     int64  // previous version, -1 if none
 	Source       string // path to .sql script or go file
 	Registered   bool
-	UpFn         func(*sql.Tx) error // Up go migration function
-	DownFn       func(*sql.Tx) error // Down go migration function
+	UpFn         func(*sqlx.Tx) error // Up go migration function
+	DownFn       func(*sqlx.Tx) error // Down go migration function
 	noVersioning bool
 }
 
@@ -34,7 +35,7 @@ func (m *Migration) String() string {
 }
 
 // Up runs an up migration.
-func (m *Migration) Up(db *sql.DB) error {
+func (m *Migration) Up(db *sqlx.DB) error {
 	if err := m.run(db, true); err != nil {
 		return err
 	}
@@ -42,14 +43,14 @@ func (m *Migration) Up(db *sql.DB) error {
 }
 
 // Down runs a down migration.
-func (m *Migration) Down(db *sql.DB) error {
+func (m *Migration) Down(db *sqlx.DB) error {
 	if err := m.run(db, false); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (m *Migration) run(db *sql.DB, direction bool) error {
+func (m *Migration) run(db *sqlx.DB, direction bool) error {
 	switch filepath.Ext(m.Source) {
 	case ".sql":
 		f, err := baseFS.Open(m.Source)
@@ -77,7 +78,7 @@ func (m *Migration) run(db *sql.DB, direction bool) error {
 		if !m.Registered {
 			return fmt.Errorf("ERROR %v: failed to run Go migration: Go functions must be registered and built into a custom binary (see https://github.com/pressly/goose/tree/master/examples/go-migrations)", m.Source)
 		}
-		tx, err := db.Begin()
+		tx, err := db.Beginx()
 		if err != nil {
 			return fmt.Errorf("ERROR failed to begin transaction: %w", err)
 		}

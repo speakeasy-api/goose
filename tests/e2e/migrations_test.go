@@ -1,15 +1,15 @@
 package e2e
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"path/filepath"
 	"reflect"
 	"testing"
 
-	"github.com/pressly/goose/v3"
-	"github.com/pressly/goose/v3/internal/check"
+	"github.com/jmoiron/sqlx"
+	"github.com/speakeasy-api/goose/v3"
+	"github.com/speakeasy-api/goose/v3/internal/check"
 )
 
 func TestMigrateUpWithReset(t *testing.T) {
@@ -213,7 +213,7 @@ func TestMigrateFull(t *testing.T) {
 	}
 }
 
-func getCurrentGooseVersion(db *sql.DB, gooseTable string) (int64, error) {
+func getCurrentGooseVersion(db *sqlx.DB, gooseTable string) (int64, error) {
 	var gotVersion int64
 	if err := db.QueryRow(
 		fmt.Sprintf("select max(version_id) from %s", gooseTable),
@@ -223,7 +223,7 @@ func getCurrentGooseVersion(db *sql.DB, gooseTable string) (int64, error) {
 	return gotVersion, nil
 }
 
-func getGooseVersionCount(db *sql.DB, gooseTable string) (int64, error) {
+func getGooseVersionCount(db *sqlx.DB, gooseTable string) (int64, error) {
 	var gotVersion int64
 	if err := db.QueryRow(
 		fmt.Sprintf("SELECT count(*) FROM %s WHERE version_id > 0", gooseTable),
@@ -233,7 +233,7 @@ func getGooseVersionCount(db *sql.DB, gooseTable string) (int64, error) {
 	return gotVersion, nil
 }
 
-func getTableNames(db *sql.DB) ([]string, error) {
+func getTableNames(db *sqlx.DB) ([]string, error) {
 	var query string
 	switch *dialect {
 	case dialectPostgres:

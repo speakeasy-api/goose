@@ -1,16 +1,16 @@
 package clickhouse_test
 
 import (
-	"database/sql"
 	"errors"
 	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/avast/retry-go/v4"
-	"github.com/pressly/goose/v3"
-	"github.com/pressly/goose/v3/internal/check"
-	"github.com/pressly/goose/v3/internal/testdb"
+	"github.com/jmoiron/sqlx"
+	"github.com/speakeasy-api/goose/v3"
+	"github.com/speakeasy-api/goose/v3/internal/check"
+	"github.com/speakeasy-api/goose/v3/internal/testdb"
 )
 
 func TestClickUpDownAll(t *testing.T) {
@@ -171,7 +171,7 @@ func TestRemoteImportMigration(t *testing.T) {
 	check.Number(t, count, 265)
 }
 
-func checkTableMutation(t *testing.T, db *sql.DB, tableName string) bool {
+func checkTableMutation(t *testing.T, db *sqlx.DB, tableName string) bool {
 	t.Helper()
 	rows, err := db.Query(
 		`select mutation_id, command, is_done, create_time from system.mutations where table=$1`,

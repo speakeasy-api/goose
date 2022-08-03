@@ -1,12 +1,13 @@
 package goose
 
 import (
-	"database/sql"
 	"fmt"
 	"os"
 	"path/filepath"
 	"text/template"
 	"time"
+
+	"github.com/jmoiron/sqlx"
 )
 
 type tmplVars struct {
@@ -14,9 +15,7 @@ type tmplVars struct {
 	CamelName string
 }
 
-var (
-	sequential = false
-)
+var sequential = false
 
 // SetSequential set whether to use sequential versioning instead of timestamp based versioning
 func SetSequential(s bool) {
@@ -24,7 +23,7 @@ func SetSequential(s bool) {
 }
 
 // Create writes a new blank migration file.
-func CreateWithTemplate(db *sql.DB, dir string, tmpl *template.Template, name, migrationType string) error {
+func CreateWithTemplate(db *sqlx.DB, dir string, tmpl *template.Template, name, migrationType string) error {
 	var version string
 	if sequential {
 		// always use DirFS here because it's modifying operation
@@ -81,7 +80,7 @@ func CreateWithTemplate(db *sql.DB, dir string, tmpl *template.Template, name, m
 }
 
 // Create writes a new blank migration file.
-func Create(db *sql.DB, dir, name, migrationType string) error {
+func Create(db *sqlx.DB, dir, name, migrationType string) error {
 	return CreateWithTemplate(db, dir, nil, name, migrationType)
 }
 
@@ -99,20 +98,20 @@ SELECT 'down SQL query';
 var goSQLMigrationTemplate = template.Must(template.New("goose.go-migration").Parse(`package migrations
 
 import (
-	"database/sql"
-	"github.com/pressly/goose/v3"
+	"github.com/jmoiron/sqlx"
+	"github.com/speakeasy-api/goose/v3"
 )
 
 func init() {
 	goose.AddMigration(up{{.CamelName}}, down{{.CamelName}})
 }
 
-func up{{.CamelName}}(tx *sql.Tx) error {
+func up{{.CamelName}}(tx *sqlx.Tx) error {
 	// This code is executed when the migration is applied.
 	return nil
 }
 
-func down{{.CamelName}}(tx *sql.Tx) error {
+func down{{.CamelName}}(tx *sqlx.Tx) error {
 	// This code is executed when the migration is rolled back.
 	return nil
 }

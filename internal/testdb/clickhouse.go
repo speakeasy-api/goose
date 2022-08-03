@@ -2,13 +2,13 @@ package testdb
 
 import (
 	"crypto/tls"
-	"database/sql"
 	"fmt"
 	"log"
 	"strconv"
 	"time"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
+	"github.com/jmoiron/sqlx"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 )
@@ -24,7 +24,7 @@ const (
 	CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT = "1"
 )
 
-func newClickHouse(opts ...OptionsFunc) (*sql.DB, func(), error) {
+func newClickHouse(opts ...OptionsFunc) (*sqlx.DB, func(), error) {
 	option := &options{}
 	for _, f := range opts {
 		f(option)
@@ -77,7 +77,7 @@ func newClickHouse(opts ...OptionsFunc) (*sql.DB, func(), error) {
 	// Fetch port assigned to container
 	address := fmt.Sprintf("%s:%s", "localhost", container.GetPort("9000/tcp"))
 
-	var db *sql.DB
+	var db *sqlx.DB
 	// Exponential backoff-retry, because the application in the container
 	// might not be ready to accept connections yet.
 	if err := pool.Retry(func() error {
@@ -89,7 +89,7 @@ func newClickHouse(opts ...OptionsFunc) (*sql.DB, func(), error) {
 	return db, cleanup, nil
 }
 
-func clickHouseOpenDB(address string, tlsConfig *tls.Config, debug bool) *sql.DB {
+func clickHouseOpenDB(address string, tlsConfig *tls.Config, debug bool) *sqlx.DB {
 	db := clickhouse.OpenDB(&clickhouse.Options{
 		Addr: []string{address},
 		Auth: clickhouse.Auth{
@@ -99,7 +99,8 @@ func clickHouseOpenDB(address string, tlsConfig *tls.Config, debug bool) *sql.DB
 		},
 		TLS: tlsConfig,
 		Settings: clickhouse.Settings{
-			"max_execution_time": 60,
+			"max_execution_time":                     60,
+			"allow_deprecated_syntax_for_merge_tree": true,
 		},
 		DialTimeout: 5 * time.Second,
 		Compression: &clickhouse.Compression{
@@ -110,5 +111,6 @@ func clickHouseOpenDB(address string, tlsConfig *tls.Config, debug bool) *sql.DB
 	db.SetMaxIdleConns(5)
 	db.SetMaxOpenConns(10)
 	db.SetConnMaxLifetime(time.Hour)
-	return db
+
+	return sqlx.NewDb(db, "clickhouse")
 }

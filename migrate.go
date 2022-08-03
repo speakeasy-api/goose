@@ -1,7 +1,6 @@
 package goose
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -9,6 +8,8 @@ import (
 	"runtime"
 	"sort"
 	"time"
+
+	"github.com/jmoiron/sqlx"
 )
 
 var (
@@ -123,13 +124,13 @@ func (ms Migrations) String() string {
 }
 
 // AddMigration adds a migration.
-func AddMigration(up func(*sql.Tx) error, down func(*sql.Tx) error) {
+func AddMigration(up func(*sqlx.Tx) error, down func(*sqlx.Tx) error) {
 	_, filename, _, _ := runtime.Caller(1)
 	AddNamedMigration(filename, up, down)
 }
 
 // AddNamedMigration : Add a named migration.
-func AddNamedMigration(filename string, up func(*sql.Tx) error, down func(*sql.Tx) error) {
+func AddNamedMigration(filename string, up func(*sqlx.Tx) error, down func(*sqlx.Tx) error) {
 	v, _ := NumericComponent(filename)
 	migration := &Migration{Version: v, Next: -1, Previous: -1, Registered: true, UpFn: up, DownFn: down, Source: filename}
 
@@ -225,7 +226,6 @@ func sortAndConnectMigrations(migrations Migrations) Migrations {
 }
 
 func versionFilter(v, current, target int64) bool {
-
 	if target > current {
 		return v > current && v <= target
 	}
@@ -239,7 +239,7 @@ func versionFilter(v, current, target int64) bool {
 
 // EnsureDBVersion retrieves the current version for this DB.
 // Create and initialize the DB version table if it doesn't exist.
-func EnsureDBVersion(db *sql.DB) (int64, error) {
+func EnsureDBVersion(db *sqlx.DB) (int64, error) {
 	rows, err := GetDialect().dbVersionQuery(db)
 	if err != nil {
 		return 0, createVersionTable(db)
@@ -288,7 +288,7 @@ func EnsureDBVersion(db *sql.DB) (int64, error) {
 
 // Create the db version table
 // and insert the initial 0 value into it
-func createVersionTable(db *sql.DB) error {
+func createVersionTable(db *sqlx.DB) error {
 	txn, err := db.Begin()
 	if err != nil {
 		return err
@@ -312,7 +312,7 @@ func createVersionTable(db *sql.DB) error {
 }
 
 // GetDBVersion is an alias for EnsureDBVersion, but returns -1 in error.
-func GetDBVersion(db *sql.DB) (int64, error) {
+func GetDBVersion(db *sqlx.DB) (int64, error) {
 	version, err := EnsureDBVersion(db)
 	if err != nil {
 		return -1, err

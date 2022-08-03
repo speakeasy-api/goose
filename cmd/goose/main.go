@@ -10,7 +10,7 @@ import (
 	"runtime/debug"
 	"text/template"
 
-	"github.com/pressly/goose/v3"
+	"github.com/speakeasy-api/goose/v3"
 )
 
 var (
@@ -27,9 +27,8 @@ var (
 	sslkey       = flags.String("ssl-key", "", "file path to SSL key in pem format (only support on mysql)")
 	noVersioning = flags.Bool("no-versioning", false, "apply migration commands with no versioning, in file order, from directory pointed to")
 )
-var (
-	gooseVersion = ""
-)
+
+var gooseVersion = ""
 
 func main() {
 	flags.Usage = usage
@@ -256,7 +255,7 @@ func gooseInit(dir string) error {
 	default:
 		return err
 	}
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return err
 	}
 	return goose.CreateWithTemplate(nil, dir, sqlMigrationTemplate, "initial", "sql")

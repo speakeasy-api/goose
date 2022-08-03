@@ -1,11 +1,11 @@
 package e2e
 
 import (
-	"database/sql"
 	"testing"
 
-	"github.com/pressly/goose/v3"
-	"github.com/pressly/goose/v3/internal/check"
+	"github.com/jmoiron/sqlx"
+	"github.com/speakeasy-api/goose/v3"
+	"github.com/speakeasy-api/goose/v3/internal/check"
 )
 
 func TestNoVersioning(t *testing.T) {
@@ -131,7 +131,7 @@ func TestNoVersioning(t *testing.T) {
 	})
 }
 
-func countSeedOwners(db *sql.DB) (int, error) {
+func countSeedOwners(db *sqlx.DB) (int, error) {
 	q := `SELECT count(*)FROM owners WHERE owner_name LIKE'seed-user-%'`
 	var count int
 	if err := db.QueryRow(q).Scan(&count); err != nil {
@@ -140,7 +140,7 @@ func countSeedOwners(db *sql.DB) (int, error) {
 	return count, nil
 }
 
-func countOwners(db *sql.DB) (int, error) {
+func countOwners(db *sqlx.DB) (int, error) {
 	q := `SELECT count(*)FROM owners`
 	var count int
 	if err := db.QueryRow(q).Scan(&count); err != nil {
