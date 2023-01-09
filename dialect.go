@@ -348,7 +348,7 @@ func (v VerticaDialect) insertVersionSQL() string {
 	return fmt.Sprintf("INSERT INTO %s (version_id, is_applied) VALUES (?, ?);", TableName())
 }
 
-func (v VerticaDialect) dbVersionQuery(db *sql.DB) (*sql.Rows, error) {
+func (v VerticaDialect) dbVersionQuery(db *sqlx.DB) (*sql.Rows, error) {
 	rows, err := db.Query(fmt.Sprintf("SELECT version_id, is_applied from %s ORDER BY id DESC", TableName()))
 	if err != nil {
 		return nil, err

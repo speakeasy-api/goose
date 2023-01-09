@@ -18,6 +18,6 @@ func NewMariaDB(options ...OptionsFunc) (db *sqlx.DB, cleanup func(), err error)
 }
 
 // NewVertica starts a Vertica docker container. Returns a db connection and a docker cleanup function.
-func NewVertica(options ...OptionsFunc) (db *sql.DB, cleanup func(), err error) {
+func NewVertica(options ...OptionsFunc) (db *sqlx.DB, cleanup func(), err error) {
 	return newVertica(options...)
 }

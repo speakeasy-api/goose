@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pressly/goose/v3"
-	"github.com/pressly/goose/v3/internal/check"
-	"github.com/pressly/goose/v3/internal/testdb"
+	"github.com/speakeasy-api/goose/v3"
+	"github.com/speakeasy-api/goose/v3/internal/check"
+	"github.com/speakeasy-api/goose/v3/internal/testdb"
 )
 
 /*

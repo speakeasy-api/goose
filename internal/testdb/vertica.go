@@ -1,12 +1,12 @@
 package testdb
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"strconv"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 	_ "github.com/vertica/vertica-sql-go"
@@ -19,7 +19,7 @@ const (
 	VERTICA_DB      = "testdb"
 )
 
-func newVertica(opts ...OptionsFunc) (*sql.DB, func(), error) {
+func newVertica(opts ...OptionsFunc) (*sqlx.DB, func(), error) {
 	option := &options{}
 	for _, f := range opts {
 		f(option)
@@ -74,7 +74,7 @@ func newVertica(opts ...OptionsFunc) (*sql.DB, func(), error) {
 		VERTICA_DB,
 	)
 
-	var db *sql.DB
+	var db *sqlx.DB
 	// Give vertica a head start since the container takes a little bit to start up.
 	time.Sleep(time.Second * 15)
 
@@ -83,7 +83,7 @@ func newVertica(opts ...OptionsFunc) (*sql.DB, func(), error) {
 	if err := pool.Retry(
 		func() error {
 			var err error
-			db, err = sql.Open("vertica", verticaInfo)
+			db, err = sqlx.Open("vertica", verticaInfo)
 			if err != nil {
 				return err
 			}
